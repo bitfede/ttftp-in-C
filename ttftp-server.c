@@ -24,8 +24,9 @@
 
 #define FILENAMEMAXLEN 256
 #define MODE "octet"
+#define MAXLENERR 128
 
-
+#define TFTP_ERROR 5
 
 int  ttftp_server( int listen_port, int is_noloop ) {
 
@@ -61,7 +62,12 @@ int  ttftp_server( int listen_port, int is_noloop ) {
 		struct TftpReq *recvReq;
 		int numbytes;
 		int addr_len;
-		
+		char* filename;
+		char* reqMode;
+		FILE* fp;
+		int filelen = 0;
+		int readIndex = 0;
+		int errorNum = -1;
 		/*
 		 * for each RRQ 
 		 */
@@ -84,7 +90,55 @@ int  ttftp_server( int listen_port, int is_noloop ) {
 		/*
 		 * parse request and open file
 		 */
-		 
+
+		//vars for file info
+		filename = recvReq->filename_and_mode;
+		reqMode = recvReq->filename_and_mode + strlen(filename) + 1;
+	        //open file and get length
+	        fp = fopen(filename, "rb");
+		if (fp != NULL) {
+			fseek(fp, 0, SEEK_END);
+			filelen = ftell(fp);
+			rewind(fp);
+		}
+		else {
+			errorNum = 1;
+		}
+
+		//check for illegal tftp operation - [we only support octet]
+		
+		if ( strcmp(reqMode, "octet") ) {
+			errorNum = 4;
+		} 
+
+		//check now for any errors
+		if (errorNum > 0) {
+			struct TftpError * errPack;
+			int numbytes;
+			short eOpcode = htons(TFTP_ERROR);
+			size_t packetsize = sizeof(struct TftpError) + MAXLENERR;
+			errPack = malloc(packetsize);
+
+			//set opcode
+			errPack->opcode[0] = (eOpcode >> 8) & 0xff;
+			errPack->opcode[1] = eOpcode & 0xff;
+		
+			//set error code
+			short netErrorCode = htons(errorNum);
+			errPack->error_code[0] = (netErrorCode >> 8) & 0xff;
+			errPack->error_code[1] = netErrorCode & 0xff;
+
+			//error message
+			if( errorNum == 1) {
+				char* msg = "The Server could not find the File.";
+				strcpy(errPack->error_msg, msg);
+			}
+			else if (errorNum == 4) {
+				char* msg = "Illegal TFTP operation.";
+				strcpy(errPack->error_msg, msg);
+			}
+
+		}
 		/*
 		 * create a sock for the data packets
 		 */	 
@@ -99,7 +153,7 @@ int  ttftp_server( int listen_port, int is_noloop ) {
 			/*
 			 * send data packet
 			 */
-			 
+			
 			/*
 			 * wait for acknowledgement
 			 */
