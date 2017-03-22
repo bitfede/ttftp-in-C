@@ -36,6 +36,24 @@ int  ttftp_server( int listen_port, int is_noloop ) {
 	 * create a socket to listen for RRQ
 	 */
 	
+	sockfd_l = socket(AF_INET, SOCK_DGRAM, 0);
+	if (sockfd_l == -1) {
+		perror("socket");
+		exit(1);
+        }
+	
+	my_addr.sin_family = AF_INET;
+	my_addr.sin_port = htons(listen_port);
+	my_addr.sin_addr.s_addr = INADDR_ANY;
+	memset(&(my_addr.sin_zero), '\0', 8) ;
+	
+	int sockbind = bind(sockfd_l, (struct sockaddr *)&my_addr, sizeof(struct sockaddr));
+	if (sockbind == -1) {
+		perror("bind");
+		exit(1);
+	}
+
+	puts("all good until here! no errors");
 	do {
 	
 		/*
@@ -64,7 +82,6 @@ int  ttftp_server( int listen_port, int is_noloop ) {
 			/*
 			 * wait for acknowledgement
 			 */
-			 
 			block_count++ ;
 		}
 	

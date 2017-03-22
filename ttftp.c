@@ -78,12 +78,10 @@ int main(int argc, char * argv[]) {
 
 	if (!is_server ) {
 		/* is client */
-		puts("is client!");
 		return ttftp_client( hostname, port, filename ) ;
 	}
 	else {
 		/* is server */
-		puts("is server!");
 		return ttftp_server( port, is_noloop ) ;
 	}
 	
