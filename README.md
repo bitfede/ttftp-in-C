@@ -17,7 +17,7 @@ The Truly Trivial File Transfer Protocol is a simplification of the Internet sta
 #### Man Page:
 
 
-`
+```
 NAME
     ttftp
     
@@ -65,7 +65,7 @@ HISTORY
 
 LAST UPDATED 
     February 14, 2016
-`	
+```	
 
 ### Detailed description
 
