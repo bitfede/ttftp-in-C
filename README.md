@@ -1,20 +1,20 @@
-#TTFTP (Truly Trivial File Transfer Protocol) Project
+# TTFTP (Truly Trivial File Transfer Protocol) Project
 
 Professor: Burt Rosenberg
 
-##Project Overview
+## Project Overview
 
 The Truly Trivial File Transfer Protocol is a simplification of the Internet standard Trivial File Transfer Protocol (TFTP), defined in 1981 by RFC 783, and updated in RFC 1350.
 
-###Specific Objectives
+### Specific Objectives
 
-- To introduce protocols in levels 4 and 5 of the networking stack.
-- To further refine understanding of UDP and the use of ports to create sessions.
-- To introduce the use of positive acknowledgements to obtain communication reliability.
-- To understand how data is represented and manipulated.
-- To be aware of security concerns in network applications.
+* To introduce protocols in levels 4 and 5 of the networking stack.
+* To further refine understanding of UDP and the use of ports to create sessions.
+* To introduce the use of positive acknowledgements to obtain communication reliability.
+* To understand how data is represented and manipulated.
+* To be aware of security concerns in network applications.
 
-####Man Page:
+#### Man Page:
 
 
 `
@@ -67,7 +67,7 @@ LAST UPDATED
     February 14, 2016
 `	
 
-###Detailed description
+### Detailed description
 
 Please read the man page for ttftp. and the TFTP RFC 1350.
 
@@ -79,7 +79,7 @@ In response to the data packet, the client sends an acknowledgement packet with 
 
 After the acknowledgement to the last data packet, the server closes the socket bound to ps. After acknowledging the last data packet, and the client lingers for linger-time in case the server retransmits the data packet, then closes the socket bound to pc. The protocol is then done.
 
-###Implementation notes and restrictions
+### Implementation notes and restrictions
 
 Note the restrictions mentioned in the manpage: only RRQ for OCTET data is supported; and the read file must be in the current server directory and world-readable.
 
@@ -95,11 +95,11 @@ Be consistent with the RFC in handling of all errrors. Check the TID of the send
 
 Read about the Sorcerer's Apprentice Syndrome. You will not do timeouts or retransmissions in this version of the project, but be familiar with the issue as you code.
 
-###Protocol trace
+### Protocol trace
 
 `Matawan:proj4 burt$ sudo tcpdump -i lo0 -X port 4434 or portrange 50000-65535`
 
-`
+```
 	22:43:34.415269 IP localhost.64881 > localhost.4434: UDP, length 19
 		0x0000:  4500 002f 9eb1 0000 4011 0000 7f00 0001  E../....@.......
 		0x0010:  7f00 0001 fd71 1152 001b fe2e 0001 6d79  .....q.R......my
@@ -128,13 +128,13 @@ Read about the Sorcerer's Apprentice Syndrome. You will not do timeouts or retra
 	22:43:34.415429 IP localhost.64881 > localhost.60537: UDP, length 4
 		0x0000:  4500 0020 9609 0000 4011 0000 7f00 0001  E.......@.......
 		0x0010:  7f00 0001 fd71 ec79 000c fe1f 0004 0001  .....q.y........ 
-`
+```
 
-###License
+### License
 
 This work is licensed under a Creative Commons Attribution-ShareAlike 3.0 Unported License.
 
-##Credits
+### Credits
 
 Author: Burton Rosenberg 
 Created: January 18, 2014 as mytftp 
