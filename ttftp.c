@@ -72,7 +72,7 @@ int main(int argc, char * argv[]) {
 	}
 	// sanity check inputs
 	if (hostname == NULL || filename == NULL) {
-		//no hostname or filename provide
+		//no hostname or filename provided therefore must be server mode
 		is_server = 1;
 	}
 

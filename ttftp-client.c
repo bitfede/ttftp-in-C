@@ -22,10 +22,28 @@
 
 #include "ttftp.h"
 
+#define MAXFILENAMELEN 256
+
+#define TFTP_RRQ 1
+
 #define h_addr h_addr_list[0]
 
 int ttftp_client( char * to_host, int to_port, char * file ) {
 	int block_count ; 
+	
+	//sanity check
+	if (strlen(file) > MAXFILENAMELEN || strchr(file, '/') != NULL) {
+		printf("Invalid filename: too long or includes a path\nThis version of TTFTP does not accept file paths");
+		exit(2);
+	}
+	
+	//declare some variables
+	struct sockaddr_in their_addr;
+	struct sockaddr_in my_addr_c;
+	int sockfd;
+	int numbytes;
+	struct TtftpReq* readReq;
+	short rrOpcode = TFTP_RRQ;
 	
 	/*
 	 * create a socket to send

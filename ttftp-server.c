@@ -78,6 +78,7 @@ int  ttftp_server( int listen_port, int is_noloop ) {
 		
 		//call method recvfrom, which expects a RRQ packet
 		addr_len = sizeof(struct sockaddr);
+		puts("yeah");
 		numbytes = recvfrom(sockfd_l, recvReq, rrq_size,0,
 			(struct sockaddr *)&their_addr, &addr_len);		
 		//check for recvfrom-related errors
@@ -143,6 +144,15 @@ int  ttftp_server( int listen_port, int is_noloop ) {
 		 * create a sock for the data packets
 		 */	 
 		
+		//TODO
+		
+
+
+
+
+
+
+
 		block_count = 1 ;
 		while (block_count) { 
 
