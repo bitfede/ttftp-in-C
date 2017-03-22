@@ -1,11 +1,11 @@
 #
-# Name: pikachu
-# Date: 14 feb 2016
+# Name: Federico G. De Faveri
+# Date: 15 March 2017
 # 
 # Note: Makefiles begin with a captal M
 #   Indentation MUST be with a tab
 #
-# tagets build, test, clean and submit are required.
+# targets build, test, clean and submit are required.
 # 
 
 COPTS= 

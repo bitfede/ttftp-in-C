@@ -1,10 +1,8 @@
 /*
 ** name: ttftp-client.c
 **
-** author: pikachu
+** author: Federico G. De Faveri
 ** created: 31 jan 2015 by bjr
-** last modified:
-**		14 feb 2016, for 162 semester of csc424 -bjr 
 **
 ** from template created 31 jan 2015 by bjr
 **

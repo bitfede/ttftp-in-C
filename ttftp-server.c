@@ -1,9 +1,8 @@
 /*
 ** name: ttftp-server.c
 **
-** author: bjr
+** author: Federico G. De Faveri
 ** created: 14 feb 2016 by bjr
-** last modified:
 **
 ** from extracted from ttftp.c
 */

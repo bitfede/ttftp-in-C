@@ -1,10 +1,8 @@
 /*
 ** name: ttftp.c
 **
-** author: bjr
+** author: Federico G. De Faveri
 ** created: 31 jan 2015 by bjr
-** last modified:
-**		14 feb 2016, for 162 semester of csc424 -bjr 
 **
 ** from template created 31 jan 2015 by bjr
 */
@@ -67,17 +65,25 @@ int main(int argc, char * argv[]) {
 		exit(0) ;
 	}
 	port = atoi(*argv) ;
-
+	//check that user passed a number
+	if (port <= 0) {
+		fprintf(stderr, "Please input a valid number for port\n");
+		exit(0);
+	}
 	// sanity check inputs
-
-	/* your code */
+	if (hostname == NULL || filename == NULL) {
+		//no hostname or filename provide
+		is_server = 1;
+	}
 
 	if (!is_server ) {
 		/* is client */
+		puts("is client!");
 		return ttftp_client( hostname, port, filename ) ;
 	}
 	else {
 		/* is server */
+		puts("is server!");
 		return ttftp_server( port, is_noloop ) ;
 	}
 	
