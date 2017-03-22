@@ -22,6 +22,9 @@
 
 #include "ttftp.h"
 
+#define FILENAMEMAXLEN 256
+#define MODE "octet"
+
 
 
 int  ttftp_server( int listen_port, int is_noloop ) {
@@ -53,13 +56,31 @@ int  ttftp_server( int listen_port, int is_noloop ) {
 		exit(1);
 	}
 
-	puts("all good until here! no errors");
 	do {
-	
+		//declaring variables
+		struct TftpReq *recvReq;
+		int numbytes;
+		int addr_len;
+		
 		/*
 		 * for each RRQ 
 		 */
-		 
+
+		//allocate memory to contain our RRQ packet
+		size_t rrq_size = sizeof(struct TftpReq) + FILENAMEMAXLEN + strlen(MODE)+ 2*sizeof(char) ; 
+		recvReq = malloc(rrq_size);
+		
+		//call method recvfrom, which expects a RRQ packet
+		addr_len = sizeof(struct sockaddr);
+		numbytes = recvfrom(sockfd_l, recvReq, rrq_size,0,
+			(struct sockaddr *)&their_addr, &addr_len);		
+		//check for recvfrom-related errors
+		if (numbytes == -1) {
+			perror("recvfrom");
+			exit(1);
+		}
+
+		puts("all good until here --- no errors");
 		/*
 		 * parse request and open file
 		 */
