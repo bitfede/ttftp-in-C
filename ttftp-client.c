@@ -44,17 +44,61 @@ int ttftp_client( char * to_host, int to_port, char * file ) {
 	int numbytes;
 	struct TtftpReq* readReq;
 	short rrOpcode = TFTP_RRQ;
-	
+	struct hostent* he;
+	int sockbind;
+	int getsname;
+
 	/*
 	 * create a socket to send
 	 */
 	 
+	sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+	if (sockfd == -1) {
+		perror("socket");
+		exit(2);
+	}
+	
+	he = gethostbyname(to_host);
+	if (he == NULL) {
+		perror("gethostbyname");
+		exit(2);
+	}
+	
+	their_addr.sin_family = AF_INET;
+	their_addr.sin_port = htons(to_port);
+	their_addr.sin_addr = *((struct in_addr *)he->h_addr);
+	memset(&(their_addr.sin_zero), '\0', 8);
+
+	//bind the client socket to a  port so it can listen
+	my_addr_c.sin_family = AF_INET;
+	my_addr_c.sin_port = 0;
+	my_addr_c.sin_addr.s_addr = INADDR_ANY;
+	memset(&(my_addr_c.sin_zero),'\0', 8);
+	
+	sockbind = bind(sockfd, (struct sockaddr *)&my_addr_c,sizeof(struct sockaddr));
+	if (sockbind == -1) {
+		perror("bind");
+		exit(2);
+	}
+
+	//figure out the client port
+	socklen_t length = sizeof(my_addr_c);
+	getsname = getsockname(sockfd, (struct sockaddr *)&my_addr_c , &length);
+	if (getsname == -1) {
+		perror("getsockname");
+		exit(2);
+	}
+	puts("all good till here");
 	/*
 	 * send RRQ
 	 */
 
+	//format the datagram TODO
+	
+	//send it TODO
+
 	block_count = 1 ; /* value expected */
-	while ( block_count ) {
+	while (block_count ) {
 	
 		/*
 		 * read at DAT packet
