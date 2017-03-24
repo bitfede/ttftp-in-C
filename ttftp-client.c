@@ -20,13 +20,13 @@
 #include<assert.h>
 #include<unistd.h>
 
+
 #include "ttftp.h"
 
 #define MAXFILENAMELEN 256
 
 #define TFTP_RRQ 1
 
-#define h_addr h_addr_list[0]
 
 int ttftp_client( char * to_host, int to_port, char * file ) {
 	int block_count ; 
@@ -42,12 +42,10 @@ int ttftp_client( char * to_host, int to_port, char * file ) {
 	struct sockaddr_in my_addr_c;
 	int sockfd;
 	int numbytes;
-	struct TtftpReq* readReq;
 	short rrOpcode = TFTP_RRQ;
 	struct hostent* he;
 	int sockbind;
 	int getsname;
-
 	/*
 	 * create a socket to send
 	 */
@@ -63,7 +61,8 @@ int ttftp_client( char * to_host, int to_port, char * file ) {
 		perror("gethostbyname");
 		exit(2);
 	}
-	
+
+
 	their_addr.sin_family = AF_INET;
 	their_addr.sin_port = htons(to_port);
 	their_addr.sin_addr = *((struct in_addr *)he->h_addr);
@@ -88,17 +87,34 @@ int ttftp_client( char * to_host, int to_port, char * file ) {
 		perror("getsockname");
 		exit(2);
 	}
-	puts("all good till here");
+
 	/*
 	 * send RRQ
 	 */
+        
+	struct TftpReq* readReq;
+	//format the datagram
+	size_t packetsize = sizeof(struct TftpReq ) + strlen(file) + strlen("octet") + 2*sizeof(char);
+	readReq = malloc(packetsize);
+	readReq->opcode[0] = (rrOpcode >> 8) & 0xff;
+	readReq->opcode[1] = rrOpcode & 0xff;
+	strcpy(readReq->filename_and_mode, file);
+	strcpy(readReq->filename_and_mode + strlen(file)+1, "octet");
 
-	//format the datagram TODO
+	//send the datagram
+	numbytes = sendto(sockfd, (void*)readReq, packetsize, 0, (struct sockaddr *)&their_addr, sizeof(struct sockaddr));	
+	if (numbytes == -1) {
+		perror("sendto");
+		exit(2);
+	}
 	
-	//send it TODO
+	//free memory we malloc-ed before
+	free(readReq);
+	printf("RRQ sent by client\n");
 
 	block_count = 1 ; /* value expected */
 	while (block_count ) {
+		printf("Client listening...");
 	
 		/*
 		 * read at DAT packet
@@ -112,6 +128,7 @@ int ttftp_client( char * to_host, int to_port, char * file ) {
 		 * send an ACK
 		 */
 
+
 		block_count ++ ;
 		
 		/* check if more blocks expected, else 
@@ -120,4 +137,3 @@ int ttftp_client( char * to_host, int to_port, char * file ) {
 	}
 	return 0 ;
 }
-
