@@ -26,7 +26,7 @@
 #define MAXFILENAMELEN 256
 
 #define TFTP_RRQ 1
-
+#define TFTP_DATA 3
 
 int ttftp_client( char * to_host, int to_port, char * file ) {
 	int block_count ; 
@@ -114,19 +114,57 @@ int ttftp_client( char * to_host, int to_port, char * file ) {
 
 	block_count = 1 ; /* value expected */
 	while (block_count ) {
-	
+		puts("Now listening...");
 		/*
 		 * read at DAT packet
 		 */
-		 
-		/*
-		 * write bytes to stdout
-		 */
-		 
-		/*
-		 * send an ACK
-		 */
+		//variables definition
+		struct TftpData* buffer;
+		short opcode;
+		int fromlength = sizeof(struct sockaddr);
+		//maximum length of data packet
+		packetsize = sizeof(struct TftpData) + MAXMSGLEN;
+		buffer = malloc(packetsize);
+		//now listen
+		numbytes = recvfrom(sockfd, (struct TftpData *)buffer, packetsize, 0, (struct sockaddr *)&their_addr, &fromlength);
+		if (numbytes == -1) {
+			perror("recvfrom");
+			exit(2);
+		}
+		printf("Packet Received!\n");
+		//to be 100% sure we gt a packet we need to 
+		//check for the presence of an opcode
+		opcode = buffer->opcode[0] << 8 | buffer->opcode[1];
+		opcode = ntohs(opcode);
+		printf("packet opcode: %i\n", opcode);
+		if (opcode == TFTP_DATA) {
+			/*
+ 			 * send an ACK  
+                         */
+			printf("Data Received!\n");
+			struct TftpAck* ack = malloc(sizeof(struct TftpAck));
+			int numbytes_s;
+			short ackOpcode = htons(TFTP_ACK);
+			ack->opcode[0] = (ackOpcode >> 8) & 0xff;
+			ack->opcode[1] = ackOpcode & 0xff;
 
+			//put the exact same block number
+			ack->block_num[0] = buffer->block_num[0];
+			ack->block_num[1] = buffer->block_num[1];
+			
+			//send it!
+			numbytes_s = sendto(sockfd, (void *)ack, sizeof(ack), 0, (struct sockaddr *)&their_addr, sizeof(struct sockaddr));
+			if (numbytes_s == -1) {
+				perror("sendto");
+				exit(2);
+			}
+			
+			//free ack data
+			free(ack);
+		
+			fwrite(buffer->data, 1, numbytes-5, stdout); 
+		}
+		 
 
 		block_count ++ ;
 		
@@ -136,3 +174,25 @@ int ttftp_client( char * to_host, int to_port, char * file ) {
 	}
 	return 0 ;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

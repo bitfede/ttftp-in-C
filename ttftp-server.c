@@ -110,6 +110,27 @@ int  ttftp_server( int listen_port, int is_noloop ) {
 		if ( strcmp(reqMode, "octet") ) {
 			errorNum = 4;
 		} 
+		
+		/*
+		 * create a sock for the data packets
+		 */ 
+		sockfd_s = socket(AF_INET, SOCK_DGRAM, 0);
+		if (sockfd_s == -1 ) {
+			perror("socket");
+			exit(1);
+		}
+
+		my_addr.sin_family = AF_INET;
+		my_addr.sin_port = htons(0);
+		my_addr.sin_addr.s_addr = INADDR_ANY;
+		memset(my_addr.sin_zero, '\0', 8);
+		
+		int sockfd_sbind = bind(sockfd_s, (struct sockaddr *)&my_addr, sizeof(struct sockaddr) );
+		if ( sockfd_sbind == -1 ) {
+			perror("bind");
+			exit(1);
+		}
+
 
 		//check now for any errors
 		if (errorNum > 0) {
@@ -139,7 +160,7 @@ int  ttftp_server( int listen_port, int is_noloop ) {
 				strcpy(errPack->error_msg, msg);
 			}
 			//send it now
-			numbytes = sendto(sockfd_l, (void *)errPack, packetsize, 0, (struct sockaddr *)&their_addr, sizeof(struct sockaddr));
+			numbytes = sendto(sockfd_s, (void *)errPack, packetsize, 0, (struct sockaddr *)&their_addr, sizeof(struct sockaddr));
 			if (numbytes == -1) {
 				perror("sendto");
 				exit(1);
@@ -148,19 +169,19 @@ int  ttftp_server( int listen_port, int is_noloop ) {
 			//exit since error occurred
 			free(errPack);
 			exit(0);
-		}
-		
-		/*
-		 * create a sock for the data packets
-		 */	 
-		
-		
-				
+		} //else { }
+			//we need to send data!
+			
+			//open file and get lenght
+			fp = fopen(filename, "rb");
+			if (fp == NULL) {
+				printf("Error opening file!!!\n");
+				exit(1);
+			}	
 
-
-
-
-
+			fseek(fp, 0, SEEK_END);
+			filelen = ftell(fp);
+			rewind(fp);
 
 
 		block_count = 1 ;
