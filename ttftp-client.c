@@ -114,7 +114,6 @@ int ttftp_client( char * to_host, int to_port, char * file ) {
 
 	block_count = 1 ; /* value expected */
 	while (block_count ) {
-		printf("Client listening...");
 	
 		/*
 		 * read at DAT packet

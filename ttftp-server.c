@@ -78,7 +78,7 @@ int  ttftp_server( int listen_port, int is_noloop ) {
 		
 		//call method recvfrom, which expects a RRQ packet
 		addr_len = sizeof(struct sockaddr);
-		puts("yeah");
+		puts("Server is listening...");
 		numbytes = recvfrom(sockfd_l, recvReq, rrq_size,0,
 			(struct sockaddr *)&their_addr, &addr_len);		
 		//check for recvfrom-related errors
@@ -87,11 +87,10 @@ int  ttftp_server( int listen_port, int is_noloop ) {
 			exit(1);
 		}
 
-		puts("all good until here --- no errors");
 		/*
 		 * parse request and open file
 		 */
-
+		puts("Packet Received!");
 		//vars for file info
 		filename = recvReq->filename_and_mode;
 		reqMode = recvReq->filename_and_mode + strlen(filename) + 1;
@@ -114,6 +113,7 @@ int  ttftp_server( int listen_port, int is_noloop ) {
 
 		//check now for any errors
 		if (errorNum > 0) {
+			//we need to send an error packet!
 			struct TftpError * errPack;
 			int numbytes;
 			short eOpcode = htons(TFTP_ERROR);
@@ -138,14 +138,24 @@ int  ttftp_server( int listen_port, int is_noloop ) {
 				char* msg = "Illegal TFTP operation.";
 				strcpy(errPack->error_msg, msg);
 			}
+			//send it now
+			numbytes = sendto(sockfd_l, (void *)errPack, packetsize, 0, (struct sockaddr *)&their_addr, sizeof(struct sockaddr));
+			if (numbytes == -1) {
+				perror("sendto");
+				exit(1);
+			}
 
+			//exit since error occurred
+			free(errPack);
+			exit(0);
 		}
+		
 		/*
 		 * create a sock for the data packets
 		 */	 
 		
-		//TODO
 		
+				
 
 
 
