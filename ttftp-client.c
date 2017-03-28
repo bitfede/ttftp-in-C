@@ -114,7 +114,7 @@ int ttftp_client( char * to_host, int to_port, char * file ) {
 
 	block_count = 1 ; /* value expected */
 	while (block_count ) {
-		puts("Now listening...");
+		puts("Now listening for server's answer...");
 		/*
 		 * read at DAT packet
 		 */
@@ -131,17 +131,17 @@ int ttftp_client( char * to_host, int to_port, char * file ) {
 			perror("recvfrom");
 			exit(2);
 		}
-		printf("Packet Received!\n");
+		printf("Packet Received from server\n");
 		//to be 100% sure we gt a packet we need to 
 		//check for the presence of an opcode
 		opcode = buffer->opcode[0] << 8 | buffer->opcode[1];
 		opcode = ntohs(opcode);
-		printf("packet opcode: %i\n", opcode);
+		printf("checking packet opcode: %i\n", opcode);
 		if (opcode == TFTP_DATA) {
 			/*
  			 * send an ACK  
                          */
-			printf("Data Received!\n");
+			printf("it is a Data Packet!\n");
 			struct TftpAck* ack = malloc(sizeof(struct TftpAck));
 			int numbytes_s;
 			short ackOpcode = htons(TFTP_ACK);
@@ -158,11 +158,13 @@ int ttftp_client( char * to_host, int to_port, char * file ) {
 				perror("sendto");
 				exit(2);
 			}
-			
+			printf("ACK sent!\n");	
 			//free ack data
 			free(ack);
-		
-			fwrite(buffer->data, 1, numbytes-5, stdout); 
+			puts("--- DATA ---");
+			fwrite(buffer->data, 1, numbytes-5, stdout);
+			printf("\n");
+			puts("------------" );
 		}
 		 
 

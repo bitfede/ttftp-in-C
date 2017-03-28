@@ -91,7 +91,7 @@ int  ttftp_server( int listen_port, int is_noloop ) {
 		/*
 		 * parse request and open file
 		 */
-		puts("Packet Received!");
+		puts("RRQ Received!");
 		//vars for file info
 		filename = recvReq->filename_and_mode;
 		reqMode = recvReq->filename_and_mode + strlen(filename) + 1;
@@ -166,7 +166,7 @@ int  ttftp_server( int listen_port, int is_noloop ) {
 				perror("sendto");
 				exit(1);
 			}
-
+			puts("Error Packet Sent");
 			//exit since error occurred
 			free(errPack);
 			exit(0);
@@ -212,25 +212,28 @@ int  ttftp_server( int listen_port, int is_noloop ) {
 			/*
 			 * read from file
 		         */
-		   	 if (readIndex+512 <= MAXMSGLEN) {
-				printf("not the last packet\n");
+		   	 if (readIndex+MAXMSGLEN <= filelen) {
+				printf("- not the last packet\n");
 				fread(fileData->data, MAXMSGLEN, 1, fp);
 				readIndex += MAXMSGLEN;
 				fseek(fp, readIndex, SEEK_SET);
+				block_count++;
 			 }
 			 else {
 				if (readIndex == filelen + MAXMSGLEN) {
-					printf("Empty\n");
+					printf("- Empty\n");
 					char* empty = "";
 					strcpy(fileData->data, empty);
 					packetsize = sizeof(struct TftpData); 
 					fileData = realloc(fileData, packetsize);
 				}
 				else {
-					printf("Last packet!\n");
+					printf("- Last packet!\n");
 					int len  = filelen - readIndex;
+					printf("LEN [ %i ] = filelen [ %i ] - readIndex [ %i ]\n", len, filelen, readIndex);
 					fread(fileData->data, len, 1, fp);
 					packetsize = sizeof(struct TftpData) + len;
+					printf("DEBUG: packetsize = %i\n", packetsize);
 					fileData = realloc(fileData, packetsize);	
 				}
 				block_count = 0;
@@ -238,17 +241,25 @@ int  ttftp_server( int listen_port, int is_noloop ) {
 			/*
 			 * send data packet
 			 */
+			printf("DEBUG: packetsize=%i\n\tblock_count: %i\n", packetsize, block_count);
 			numbytes = sendto(sockfd_s, (void*)fileData, packetsize, 0, (struct sockaddr*)&their_addr, sizeof(struct sockaddr));
 			if (numbytes == -1) {
 				perror("sendto");
 				exit(1);
 			}
+			printf("Data Packet #%i Sent!\n", block_count);
 			/*
 			 * wait for acknowledgement
 			 */
-
-			
-			block_count++ ;
+			ack = malloc(sizeof(struct TftpAck));
+			numbytes = recvfrom(sockfd_s, (struct TftpAck *)ack, sizeof(struct TftpAck), 0, (struct sockaddr *)&their_addr, &addr_len);
+			if (numbytes == -1) {
+				perror("recvfrom");
+				exit(1);
+			}
+			free(fileData);
+			free(ack);
+		//	block_count++ ; it was here :/
 		}
 	
 	} while (!is_noloop) ;
