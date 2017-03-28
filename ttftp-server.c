@@ -27,6 +27,7 @@
 #define MAXLENERR 128
 
 #define TFTP_ERROR 5
+#define TFTP_DATA 3
 
 int  ttftp_server( int listen_port, int is_noloop ) {
 
@@ -169,9 +170,8 @@ int  ttftp_server( int listen_port, int is_noloop ) {
 			//exit since error occurred
 			free(errPack);
 			exit(0);
-		} //else { }
+		}
 			//we need to send data!
-			
 			//open file and get lenght
 			fp = fopen(filename, "rb");
 			if (fp == NULL) {
@@ -182,15 +182,59 @@ int  ttftp_server( int listen_port, int is_noloop ) {
 			fseek(fp, 0, SEEK_END);
 			filelen = ftell(fp);
 			rewind(fp);
-
+				
+			int is_mac = 0;
+			int is_padded = 0;
 
 		block_count = 1 ;
 		while (block_count) { 
+			//declare vars and structs
+			struct TftpData* fileData;
+			struct TftpAck* ack;
+			short Opcode = htons(TFTP_DATA);
+			size_t packetsize;
+			int numbytes;
+			int addr_len = sizeof(struct sockaddr);
+			//increase block number
+			block_count++;
+			//allocate space
+			packetsize = sizeof(struct TftpData) + MAXMSGLEN;
+			fileData = malloc(packetsize);
+
+			//save the opcode
+			fileData->opcode[0] = (Opcode >> 8) & 0xff;
+			fileData->opcode[1] = Opcode & 0xff;
+			
+			//save the block number
+			fileData->block_num[0] = (htons(block_count) >> 8) & 0x77;
+			fileData->block_num[1] = htons(block_count) & 0x77;
 
 			/*
 			 * read from file
-			 */
-			 
+		         */
+		   	 if (readIndex+512 <= MAXMSGLEN) {
+				printf("not the last packet\n");
+				fread(fileData->data, MAXMSGLEN, 1, fp);
+				readIndex += MAXMSGLEN;
+				fseek(fp, readIndex, SEEK_SET);
+			 }
+			 else {
+				if (readIndex == filelen + MAXMSGLEN) {
+					printf("Empty\n");
+					char* empty = "";
+					strcpy(fileData->data, empty);
+					packetsize = sizeof(struct TftpData); 
+					fileData = realloc(fileData, packetsize);
+				}
+				else {
+					printf("Last packet!\n");
+					int len  = filelen - readIndex;
+					fread(fileData->data, len, 1, fp);
+					packetsize = sizeof(struct TftpData) + len;
+					fileData = realloc(fileData, packetsize);	
+				}
+				block_count = 0;
+			}
 			/*
 			 * send data packet
 			 */
