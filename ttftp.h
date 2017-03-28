@@ -11,6 +11,8 @@
 
 extern int g_verbose ;
 
+#define DEBUG 0
+
 #define MAXMSGLEN 2048
 #define MAXFILENAMELEN 256
 

@@ -26,7 +26,7 @@
 #define MAXFILENAMELEN 256
 
 #define TFTP_RRQ 1
-
+#define TFTP_DATA 3
 
 int ttftp_client( char * to_host, int to_port, char * file ) {
 	int block_count ; 
@@ -110,29 +110,104 @@ int ttftp_client( char * to_host, int to_port, char * file ) {
 	
 	//free memory we malloc-ed before
 	free(readReq);
-	printf("RRQ sent by client\n");
+	if (DEBUG)
+		printf("RRQ sent by client\n");
 
 	block_count = 1 ; /* value expected */
 	while (block_count ) {
-	
+		if (DEBUG)
+			puts("Now listening for server's answer...");
 		/*
 		 * read at DAT packet
 		 */
-		 
-		/*
-		 * write bytes to stdout
-		 */
-		 
-		/*
-		 * send an ACK
-		 */
+		//variables definition
+		struct TftpData* buffer;
+		short opcode;
+		int fromlength = sizeof(struct sockaddr);
+		//maximum length of data packet
+		packetsize = sizeof(struct TftpData) + MAXMSGLEN;
+		buffer = malloc(packetsize);
+		//now listen
+		numbytes = recvfrom(sockfd, (struct TftpData *)buffer, packetsize, 0, (struct sockaddr *)&their_addr, &fromlength);
+		if (numbytes == -1) {
+			perror("recvfrom");
+			exit(2);
+		}
+		if (DEBUG)
+			printf("Packet Received from server\n");
+		//to be 100% sure we gt a packet we need to 
+		//check for the presence of an opcode
+		opcode = buffer->opcode[0] << 8 | buffer->opcode[1];
+		opcode = ntohs(opcode);
+		if (DEBUG)
+			printf("checking packet opcode: %i\n", opcode);
+		if (opcode == TFTP_DATA) {
+			/*
+ 			 * send an ACK  
+                         */
+			if (DEBUG)
+				printf("it is a Data Packet!\n");
+			struct TftpAck* ack = malloc(sizeof(struct TftpAck));
+			int numbytes_s;
+			short ackOpcode = htons(TFTP_ACK);
+			ack->opcode[0] = (ackOpcode >> 8) & 0xff;
+			ack->opcode[1] = ackOpcode & 0xff;
 
+			//put the exact same block number
+			ack->block_num[0] = buffer->block_num[0];
+			ack->block_num[1] = buffer->block_num[1];
+			
+			//send it!
+			numbytes_s = sendto(sockfd, (void *)ack, sizeof(ack), 0, (struct sockaddr *)&their_addr, sizeof(struct sockaddr));
+			if (numbytes_s == -1) {
+				perror("sendto");
+				exit(2);
+			}
+			if (DEBUG)
+				printf("ACK sent!\n");	
+			//free ack data
+			free(ack);
+			if (DEBUG)
+				puts("--- DATA ---");
+			fwrite(buffer->data, 1, numbytes-5, stdout);
+			printf("\n");
+			if (DEBUG)
+				puts("------------" );
+		}
+		 
 
 		block_count ++ ;
 		
 		/* check if more blocks expected, else 
 		 * set block_count = 0 ;
 		 */
+		if (numbytes-5 < MAXMSGLEN) {
+			block_count = 0;
+			close(sockfd);
+		}		
+
 	}
 	return 0 ;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
