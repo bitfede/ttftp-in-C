@@ -238,10 +238,16 @@ int  ttftp_server( int listen_port, int is_noloop ) {
 			/*
 			 * send data packet
 			 */
-			
+			numbytes = sendto(sockfd_s, (void*)fileData, packetsize, 0, (struct sockaddr*)&their_addr, sizeof(struct sockaddr));
+			if (numbytes == -1) {
+				perror("sendto");
+				exit(1);
+			}
 			/*
 			 * wait for acknowledgement
 			 */
+
+			
 			block_count++ ;
 		}
 	
