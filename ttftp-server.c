@@ -95,6 +95,28 @@ int  ttftp_server( int listen_port, int is_noloop ) {
 		//vars for file info
 		filename = recvReq->filename_and_mode;
 		reqMode = recvReq->filename_and_mode + strlen(filename) + 1;
+	
+		//PROJ4 - IMPLEMENTATION OF CONCURRENCY
+		//- child process takes care of transfer
+		//
+		//- parent process does nothing, just goes back to
+		//  listen on the listening port
+
+		pid_t child_pid;
+		child_pid = fork();
+		//check if our fork failed
+		if (child_pid < 0) {
+			//if it did, perror and exit
+			perror("fork");
+			exit(1);
+		}
+		//check if it is the parent process
+		else if (childpid != 0) {
+			//do nothing if it is
+		}
+		//else this is a child process, therefore proceed with the transfer
+		else {
+
 	        //open file and get length
 	        fp = fopen(filename, "rb");
 		if (fp != NULL) {
@@ -260,6 +282,7 @@ int  ttftp_server( int listen_port, int is_noloop ) {
 			if (DEBUG)
 				puts("ACK Received from client!");	
 		}
+	}
 	} while (!is_noloop) ;
 	return 0 ;
 }
